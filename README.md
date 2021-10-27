@@ -1,5 +1,7 @@
 # HASKELL MOOC
 
+I'm keeping this public for now. If you use this to cheat just remember that you're a complete failure. If you use this to help you through some exercises you're all good just keep on struggling struggler.
+
 ## PART I
 
 - Set 1 11/11
