@@ -26,8 +26,8 @@ Total: 118/127
 - Set 10a 9/9
 - Set 10b 4/4
 - Set 11a 10/10
-- Set 11b 0/7 -- YOU'RE HERE
-- Set 12 0/11
+- Set 11b 7/7
+- Set 12 0/11 -- here
 - Set 13a 0/10
 - Set 13b 0/9
 - Set 14a 0/8
