@@ -20,11 +20,11 @@ Total: 118/127
 ## PART II
 
 - Set 9a 9/9
-- Set 9b 1/9 -- YOU'RE HERE
-- Set 10a 0/9
-- Set 10b 0/4
-- Set 11a 0/10
-- Set 11b 0/7
+- Set 9b 5/9
+- Set 10a 9/9
+- Set 10b 4/4
+- Set 11a 10/10
+- Set 11b 0/7 -- YOU'RE HERE
 - Set 12 0/11
 - Set 13a 0/10
 - Set 13b 0/9
