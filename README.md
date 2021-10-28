@@ -27,7 +27,7 @@ Total: 118/127
 - Set 10b 4/4
 - Set 11a 10/10
 - Set 11b 7/7
-- Set 12 11/11
+- Set 12 11/11 -- last exercise was hella fun
 - Set 13a 0/10 -- HERE
 - Set 13b 0/9
 - Set 14a 0/8
