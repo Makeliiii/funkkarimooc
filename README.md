@@ -22,7 +22,7 @@ Total: 118/127
 ## PART II
 
 - Set 9a 9/9
-- Set 9b 5/9
+- Set 9b 5/9 -- cancer
 - Set 10a 9/9
 - Set 10b 4/4
 - Set 11a 10/10
