@@ -28,8 +28,8 @@ Total: 118/127
 - Set 11a 10/10
 - Set 11b 7/7
 - Set 12 11/11 -- last exercise was hella fun
-- Set 13a 0/10 -- HERE
-- Set 13b 0/9
+- Set 13a 9/10 -- No fucking clue how to do the last one
+- Set 13b 0/9 -- HERE
 - Set 14a 0/8
 - Set 14b 0/8
 - Set 15 0/15
