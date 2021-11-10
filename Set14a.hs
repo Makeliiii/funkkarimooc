@@ -28,7 +28,11 @@ import qualified Data.ByteString.Lazy as BL
 --  greetText (T.pack "Benedict Cumberbatch") ==> "Hello, Benedict Cumber...!"
 
 greetText :: T.Text -> T.Text
-greetText = todo
+greetText txt = if length stringified > 15
+                then T.pack ("Hello, " ++ take 15 stringified ++ "...!")
+                else T.pack ("Hello, " ++ stringified ++ "!")
+    where
+        stringified = T.unpack txt
 
 ------------------------------------------------------------------------------
 -- Ex 2: Capitalize every second word of a Text.
@@ -40,7 +44,12 @@ greetText = todo
 --     ==> "WORD"
 
 shout :: T.Text -> T.Text
-shout = todo
+shout txt = T.unwords $ capitalizeWords kalja
+    where
+        kalja = T.words txt
+        capitalizeWords [] = []
+        capitalizeWords [x] = [T.toUpper x]
+        capitalizeWords (x:y:xs) = T.toUpper x : y : capitalizeWords xs
 
 ------------------------------------------------------------------------------
 -- Ex 3: Find the longest sequence of a single character repeating in
@@ -50,8 +59,8 @@ shout = todo
 --   longestRepeat (T.pack "") ==> 0
 --   longestRepeat (T.pack "aabbbbccc") ==> 4
 
-longestRepeat :: T.Text -> Int
-longestRepeat = todo
+longestRepeat :: T.Text -> [Int]
+longestRepeat t = todo
 
 ------------------------------------------------------------------------------
 -- Ex 4: Given a lazy (potentially infinite) Text, extract the first n
