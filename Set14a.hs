@@ -59,8 +59,17 @@ shout txt = T.unwords $ capitalizeWords kalja
 --   longestRepeat (T.pack "") ==> 0
 --   longestRepeat (T.pack "aabbbbccc") ==> 4
 
-longestRepeat :: T.Text -> [Int]
-longestRepeat t = todo
+longestRepeat :: T.Text -> Int
+longestRepeat t = apustaja str 1 0
+    where
+        str = T.unpack t
+        apustaja :: String -> Int -> Int -> Int
+        apustaja [] l longest = longest
+        apustaja [x] l longest = if l > longest then l else longest
+        apustaja (x:y:xs) l longest
+          | x == y = apustaja (y:xs) (l+1) longest
+          | x /= y = if l > longest then apustaja (y:xs) 1 l else apustaja (y:xs) 1 longest
+          | otherwise = apustaja (y:xs) l longest
 
 ------------------------------------------------------------------------------
 -- Ex 4: Given a lazy (potentially infinite) Text, extract the first n
@@ -73,7 +82,11 @@ longestRepeat t = todo
 --   takeStrict 15 (TL.pack (cycle "asdf"))  ==>  "asdfasdfasdfasd"
 
 takeStrict :: Int64 -> TL.Text -> T.Text
-takeStrict = todo
+takeStrict n t = T.pack str
+    where
+        taken = TL.take n t
+        str   = TL.unpack taken
+
 
 ------------------------------------------------------------------------------
 -- Ex 5: Find the difference between the largest and smallest byte
@@ -85,7 +98,12 @@ takeStrict = todo
 --   byteRange (B.pack [3]) ==> 0
 
 byteRange :: B.ByteString -> Word8
-byteRange = todo
+byteRange b = if B.empty == b then 0 else diff
+    where
+        sorted = B.sort b
+        last = B.last sorted
+        first = B.head sorted
+        diff = last - first
 
 ------------------------------------------------------------------------------
 -- Ex 6: Compute the XOR checksum of a ByteString. The XOR checksum of
@@ -106,7 +124,12 @@ byteRange = todo
 --   xorChecksum (B.pack []) ==> 0
 
 xorChecksum :: B.ByteString -> Word8
-xorChecksum = todo
+xorChecksum b = apustaja asd
+    where
+        asd = B.unpack b
+        apustaja []     = 0
+        apustaja [x, y] = xor x y
+        apustaja (x:xs) = xor x (apustaja xs)
 
 ------------------------------------------------------------------------------
 -- Ex 7: Given a ByteString, compute how many UTF-8 characters it
@@ -123,7 +146,8 @@ xorChecksum = todo
 --   countUtf8Chars (B.drop 1 (encodeUtf8 (T.pack "åäö"))) ==> Nothing
 
 countUtf8Chars :: B.ByteString -> Maybe Int
-countUtf8Chars = todo
+countUtf8Chars b = case decodeUtf8' b of Left a  -> Nothing
+                                         Right a -> Just (T.length a)
 
 ------------------------------------------------------------------------------
 -- Ex 8: Given a (nonempty) strict ByteString b, generate an infinite
@@ -135,5 +159,8 @@ countUtf8Chars = todo
 --     ==> [0,1,2,2,1,0,0,1,2,2,1,0,0,1,2,2,1,0,0,1]
 
 pingpong :: B.ByteString -> BL.ByteString
-pingpong = todo
+pingpong b = BL.pack $ apustaja unpakd
+    where
+        unpakd = B.unpack b
+        apustaja xs = xs ++ reverse xs ++ apustaja xs
 
