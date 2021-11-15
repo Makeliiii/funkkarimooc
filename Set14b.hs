@@ -73,12 +73,13 @@ getAllQuery = Query (T.pack "SELECT account, amount FROM events;")
 -- openDatabase should open an SQLite database using the given
 -- filename, run initQuery on it, and produce a database Connection.
 openDatabase :: String -> IO Connection
-openDatabase = todo
+openDatabase name = open name >>= (\conn -> do execute_ conn initQuery
+                                               return conn)
 
 -- given a db connection, an account name, and an amount, deposit
 -- should add an (account, amount) row into the database
 deposit :: Connection -> T.Text -> Int -> IO ()
-deposit = todo
+deposit conn name amount = execute conn depositQuery (name, amount)
 
 ------------------------------------------------------------------------------
 -- Ex 2: Fetching an account's balance. Below you'll find
@@ -109,7 +110,9 @@ balanceQuery :: Query
 balanceQuery = Query (T.pack "SELECT amount FROM events WHERE account = ?;")
 
 balance :: Connection -> T.Text -> IO Int
-balance = todo
+balance conn name = do
+  x <- query conn balanceQuery [name] :: IO [[Int]]
+  return $ sum (concat x)
 
 ------------------------------------------------------------------------------
 -- Ex 3: Now that we have the database part covered, let's think about
@@ -140,100 +143,6 @@ balance = todo
 --     ==> Just (Balance "madoff")
 --   parseCommand [T.pack "deposit", T.pack "madoff", T.pack "123456"]
 --     ==> Just (Deposit "madoff" 123456)
-
-data Command = Deposit T.Text Int | Balance T.Text
-  deriving (Show, Eq)
-
-parseInt :: T.Text -> Maybe Int
-parseInt = readMaybe . T.unpack
-
-parseCommand :: [T.Text] -> Maybe Command
-parseCommand = todo
-
-------------------------------------------------------------------------------
--- Ex 4: Running commands. Implement the IO operation perform that takes a
--- database Connection, the result of parseCommand (a Maybe Command),
--- and runs the command in the database. Remember to use the
--- operations you implemented in exercises 1 and 2.
---
--- The perform operation should produce a Text that describes the result
--- of the command. The result of a Deposit command should be "OK" and
--- the result of a Balance command should be the balance, as a Text.
---
--- You don't need to handle the case where the command is Nothing yet,
--- you'll get to deal with that in exercise 8.
---
--- Example in GHCi:
---   Set14b> perform db (Just (Deposit (T.pack "madoff") 123456))
---   "OK"
---   Set14b> perform db (Just (Deposit (T.pack "madoff") 654321))
---   "OK"
---   Set14b> perform db (Just (Balance (T.pack "madoff")))
---   "777777"
---   Set14b> perform db (Just (Balance (T.pack "unknown")))
---   "0"
-
-perform :: Connection -> Maybe Command -> IO T.Text
-perform = todo
-
-------------------------------------------------------------------------------
--- Ex 5: Next up, let's set up a simple HTTP server. Implement a WAI
--- Application simpleServer that always responds with a HTTP status
--- 200 and a text "BANK" to any request.
---
--- You can use the function encodeResponse to convert a Text into the
--- right kind of ByteString to give to responseLBS.
---
--- Example:
---   - In GHCi: run 8899 simpleServer
---   - Go to <http://localhost:8899> in your browser, you should see the text BANK
-
-encodeResponse :: T.Text -> LB.ByteString
-encodeResponse t = LB.fromStrict (encodeUtf8 t)
-
--- Remember:
--- type Application = Request -> (Response -> IO ResponseReceived) -> IO ResponseReceived
-simpleServer :: Application
-simpleServer request respond = todo
-
-------------------------------------------------------------------------------
--- Ex 6: Now we finally have all the pieces we need to actually
--- implement our API. Implement a WAI Application called server that
--- receives a request, parses the Command it refers to, and runs the
--- command. Use the parseCommand, perform and encodeResponse
--- functions.
---
--- After you've implemented server, you can run the bank API from the
--- command line with
---   stack runhaskell Set14b.hs
--- This uses the main function provided below.
---
--- Tip: it can make debugging easier if you print the command before
--- performing it.
---
--- Example:
---   - Run the server with "stack runhaskell Set14b.hs"
---   - Open <http://localhost:3421/deposit/lopez/17> in your browser.
---     You should see the text OK.
---   - Open <http://localhost:3421/deposit/lopez/8> in your browser.
---     You should see the text OK.
---   - Open <http://localhost:3421/balance/lopez> in your browser.
---     You should see the text 25.
-
--- Remember:
--- type Application = Request -> (Response -> IO ResponseReceived) -> IO ResponseReceived
-server :: Connection -> Application
-server db request respond = todo
-
-port :: Int
-port = 3421
-
-main :: IO ()
-main = do
-  db <- openDatabase "bank.db"
-  putStr "Running on port: "
-  print port
-  run port (server db)
 
 ------------------------------------------------------------------------------
 -- Ex 7: Add the possibility to withdraw funds to the API. Withdrawing
@@ -274,4 +183,110 @@ main = do
 --    - http://localhost:3421/balance
 --    - http://localhost:3421/balance/matti/pekka
 
+data Command = Deposit T.Text Int | Balance T.Text | Withdraw T.Text Int
+  deriving (Show, Eq)
 
+parseInt :: T.Text -> Maybe Int
+parseInt = readMaybe . T.unpack
+
+parseCommand :: [T.Text] -> Maybe Command
+parseCommand xs 
+  | length xs == 3 = case T.unpack $ head xs of "withdraw" -> case parseInt (xs !! 2) of Just x  -> Just $ Withdraw (xs !! 1) x
+                                                                                         Nothing -> Nothing
+                                                "deposit"  -> case parseInt (xs !! 2) of Just x  -> Just $ Deposit (xs !! 1) x
+                                                                                         Nothing -> Nothing
+                                                _          -> Nothing
+  | length xs == 2 = case T.unpack $ head xs of "balance"  -> Just $ Balance (xs !! 1)
+                                                _          -> Nothing
+  | otherwise = Nothing
+
+------------------------------------------------------------------------------
+-- Ex 4: Running commands. Implement the IO operation perform that takes a
+-- database Connection, the result of parseCommand (a Maybe Command),
+-- and runs the command in the database. Remember to use the
+-- operations you implemented in exercises 1 and 2.
+--
+-- The perform operation should produce a Text that describes the result
+-- of the command. The result of a Deposit command should be "OK" and
+-- the result of a Balance command should be the balance, as a Text.
+--
+-- You don't need to handle the case where the command is Nothing yet,
+-- you'll get to deal with that in exercise 8.
+--
+-- Example in GHCi:
+--   Set14b> perform db (Just (Deposit (T.pack "madoff") 123456))
+--   "OK"
+--   Set14b> perform db (Just (Deposit (T.pack "madoff") 654321))
+--   "OK"
+--   Set14b> perform db (Just (Balance (T.pack "madoff")))
+--   "777777"
+--   Set14b> perform db (Just (Balance (T.pack "unknown")))
+--   "0"
+
+perform :: Connection -> Maybe Command -> IO T.Text
+perform _ Nothing = return (T.pack "ERROR")
+perform db (Just (Balance text)) = balance db text >>= return . T.pack . show
+perform db (Just (Deposit text amount)) = deposit db text amount >> return (T.pack "OK")
+perform db (Just (Withdraw text amount)) = deposit db text (negate amount) >> return (T.pack "OK")
+
+------------------------------------------------------------------------------
+-- Ex 5: Next up, let's set up a simple HTTP server. Implement a WAI
+-- Application simpleServer that always responds with a HTTP status
+-- 200 and a text "BANK" to any request.
+--
+-- You can use the function encodeResponse to convert a Text into the
+-- right kind of ByteString to give to responseLBS.
+--
+-- Example:
+--   - In GHCi: run 8899 simpleServer
+--   - Go to <http://localhost:8899> in your browser, you should see the text BANK
+
+encodeResponse :: T.Text -> LB.ByteString
+encodeResponse t = LB.fromStrict (encodeUtf8 t)
+
+-- Remember:
+-- type Application = Request -> (Response -> IO ResponseReceived) -> IO ResponseReceived
+simpleServer :: Application
+simpleServer request respond = respond (responseLBS status200 [] (encodeResponse (T.pack "BANK")))
+
+------------------------------------------------------------------------------
+-- Ex 6: Now we finally have all the pieces we need to actually
+-- implement our API. Implement a WAI Application called server that
+-- receives a request, parses the Command it refers to, and runs the
+-- command. Use the parseCommand, perform and encodeResponse
+-- functions.
+--
+-- After you've implemented server, you can run the bank API from the
+-- command line with
+--   stack runhaskell Set14b.hs
+-- This uses the main function provided below.
+--
+-- Tip: it can make debugging easier if you print the command before
+-- performing it.
+--
+-- Example:
+--   - Run the server with "stack runhaskell Set14b.hs"
+--   - Open <http://localhost:3421/deposit/lopez/17> in your browser.
+--     You should see the text OK.
+--   - Open <http://localhost:3421/deposit/lopez/8> in your browser.
+--     You should see the text OK.
+--   - Open <http://localhost:3421/balance/lopez> in your browser.
+--     You should see the text 25.
+
+-- Remember:
+-- type Application = Request -> (Response -> IO ResponseReceived) -> IO ResponseReceived
+server :: Connection -> Application
+server db request respond = do
+  let path = pathInfo request
+  response <- perform db (parseCommand path)
+  respond (responseLBS status200 [] (encodeResponse response))
+
+port :: Int
+port = 3421
+
+main :: IO ()
+main = do
+  db <- openDatabase "bank.db"
+  putStr "Running on port: "
+  print port
+  run port (server db)
