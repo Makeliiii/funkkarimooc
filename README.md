@@ -31,7 +31,7 @@ Total: 118/127
 - Set 13a 9/10 -- No fucking clue how to do the last one
 - Set 13b 7/9 -- can't figure out how to implement monad for that fucking bind operator... didn't even try the last one
 - Set 14a 8/8 -- felt nice doing some easy exercises for a change
-- Set 14b 0/8
+- Set 14b 8/8 -- very pog exercises
 - Set 15 1/15
 - Set 16a 0/7
 - Set 16b 0/5
