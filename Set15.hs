@@ -36,7 +36,10 @@ sumTwoMaybes x y = (+) <$> x <*> y
 --         "code is not suffering","code is not life"]
 
 statements :: [String] -> [String] -> [String]
-statements = todo
+statements xs ys = liftA2 isNot xs ys ++ liftA2 isYes xs ys
+  where
+    isNot x y = x ++ " is not " ++ y
+    isYes x y = x ++ " is " ++ y
 
 ------------------------------------------------------------------------------
 -- Ex 3: A simple calculator with error handling. Given an operation
@@ -54,7 +57,9 @@ statements = todo
 --  calculator "double" "7x"  ==> Nothing
 
 calculator :: String -> String -> Maybe Int
-calculator = todo
+calculator "negate" x = negate <$> readMaybe x
+calculator "double" x = (*2) <$> readMaybe x
+calculator _ _ = Nothing
 
 ------------------------------------------------------------------------------
 -- Ex 4: Safe division. Implement the function validateDiv that
@@ -71,7 +76,10 @@ calculator = todo
 --  validateDiv 0 3 ==> Ok 0
 
 validateDiv :: Int -> Int -> Validation Int
-validateDiv = todo
+validateDiv x y = liftA2 div checkX checkY
+  where
+    checkX = check True "Nothing" x
+    checkY = check (y /= 0) "Division by zero!" y
 
 ------------------------------------------------------------------------------
 -- Ex 5: Validating street addresses. A street address consists of a
@@ -101,7 +109,19 @@ data Address = Address String String String
   deriving (Show,Eq)
 
 validateAddress :: String -> String -> String -> Validation Address
-validateAddress streetName streetNumber postCode = todo
+validateAddress streetName streetNumber postCode = Address <$> checkStreetName <*> checkStreetNumber <*> checkPostCode
+  where
+    checkStreetName = check (length streetName <= 20) "Invalid street name" streetName
+    strNbr :: Maybe Int
+    strNbr = readMaybe streetNumber
+    readStreetNumber = case strNbr of Just x  -> True
+                                      Nothing -> False
+    checkStreetNumber = check readStreetNumber "Invalid street number" streetNumber
+    pstCd  :: Maybe Int
+    pstCd  = readMaybe postCode
+    readPostCode = case pstCd of Just x  -> True
+                                 Nothing -> False
+    checkPostCode = check (length postCode == 5 && readPostCode) "Invalid postcode" postCode
 
 ------------------------------------------------------------------------------
 -- Ex 6: Given the names, ages and employment statuses of two
@@ -120,10 +140,12 @@ validateAddress streetName streetNumber postCode = todo
 data Person = Person String Int Bool
   deriving (Show, Eq)
 
-twoPersons :: Applicative f =>
-  f String -> f Int -> f Bool -> f String -> f Int -> f Bool
-  -> f [Person]
-twoPersons name1 age1 employed1 name2 age2 employed2 = todo
+twoPersons :: Applicative f => f String -> f Int -> f Bool -> f String -> f Int -> f Bool -> f [Person]
+twoPersons name1 age1 employed1 name2 age2 employed2 = liftA2 combine person1 person2
+  where
+    combine x y = [x, y]
+    person1 = Person <$> name1 <*> age1 <*> employed1
+    person2 = Person <$> name2 <*> age2 <*> employed2
 
 ------------------------------------------------------------------------------
 -- Ex 7: Validate a String that's either a Bool or an Int. The return
@@ -143,7 +165,13 @@ twoPersons name1 age1 employed1 name2 age2 employed2 = todo
 --  boolOrInt "Falseb"  ==> Errors ["Not a Bool","Not an Int"]
 
 boolOrInt :: String -> Validation (Either Bool Int)
-boolOrInt = todo
+boolOrInt "False" = pure (Left False)
+boolOrInt "True"  = pure (Left True)
+boolOrInt s = case val of Just x  -> pure (Right x)
+                          Nothing -> liftA2 const (invalid "Not a Bool") (invalid "Not an Int")
+  where
+    val :: Maybe Int
+    val = readMaybe s
 
 ------------------------------------------------------------------------------
 -- Ex 8: Improved phone number validation. Implement the function
@@ -167,7 +195,17 @@ boolOrInt = todo
 --    ==> Errors ["Too long"]
 
 normalizePhone :: String -> Validation String
-normalizePhone = todo
+normalizePhone xs = if length ys > 10 then invalid "Too long" else todo
+  where
+    removeSpaces [] = []
+    removeSpaces (x:xs) = if x == ' ' then removeSpaces xs else x : removeSpaces xs
+    readings :: [Char] -> Maybe Int
+    readings = readMaybe
+    invalidChars [] = []
+    invalidChars (x:xs) = case readings [x] of Just y  -> invalidChars xs
+                                               Nothing -> x : invalidChars xs
+    ys = removeSpaces xs
+    zs = invalidChars ys
 
 ------------------------------------------------------------------------------
 -- Ex 9: Parsing expressions. The Expression type describes an
@@ -236,11 +274,11 @@ data Priced a = Priced Int a
   deriving (Show, Eq)
 
 instance Functor Priced where
-  fmap = todo
+  fmap f (Priced x a) = Priced x (f a)
 
 instance Applicative Priced where
-  pure = todo
-  liftA2 = todo
+  pure x = Priced 0 x
+  liftA2 f (Priced x a) (Priced y b) = Priced (x + y) (f a b)
 
 ------------------------------------------------------------------------------
 -- Ex 11: This and the next exercise will use a copy of the
