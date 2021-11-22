@@ -18,7 +18,9 @@ import Data.List
 --  +++ OK, passed 1 test.
 
 isSorted :: (Show a, Ord a) => [a] -> Property
-isSorted = todo
+isSorted xs = xs === sort xs
+  where
+    sorted = sort xs
 
 ------------------------------------------------------------------------------
 -- Ex 2: In this and the following exercises, we'll build a suite of
@@ -50,7 +52,10 @@ isSorted = todo
 --  +++ OK, passed 1 test.
 
 sumIsLength :: Show a => [a] -> [(a,Int)] -> Property
-sumIsLength input output = todo
+sumIsLength input output = length input === apustaja output
+  where
+    apustaja [] = 0
+    apustaja (x:xs) = snd x + apustaja xs
 
 -- This is a function that passes the sumIsLength test but is wrong
 freq1 :: Eq a => [a] -> [(a,Int)]
