@@ -84,7 +84,12 @@ freq1 (x:y:xs) = [(x,1),(y,length xs + 1)]
 --  +++ OK, passed 100 tests.
 
 inputInOutput :: (Show a, Eq a) => [a] -> [(a,Int)] -> Property
-inputInOutput input output = todo
+inputInOutput input output = forAll (elements input) (apustaja output)
+  where
+    apustaja xs c = check $ lookup c xs
+      where
+        check x = case x of Nothing -> False
+                            Just x  -> True 
 
 -- This function passes both the sumIsLength and inputInOutput tests
 freq2 :: Eq a => [a] -> [(a,Int)]
@@ -115,7 +120,10 @@ freq2 xs = map (\x -> (x,1)) xs
 --  +++ OK, passed 100 tests.
 
 outputInInput :: (Show a, Eq a) => [a] -> [(a,Int)] -> Property
-outputInInput input output = todo
+outputInInput input output = apustaja output === True
+  where
+    apustaja [] = True
+    apustaja (x:xs) = snd x == length (filter (== fst x) input) && apustaja xs
 
 -- This function passes the outputInInput test but not the others
 freq3 :: Eq a => [a] -> [(a,Int)]
@@ -144,7 +152,10 @@ freq3 (x:xs) = [(x,1 + length (filter (==x) xs))]
 --  +++ OK, passed 100 tests.
 
 frequenciesProp :: ([Char] -> [(Char,Int)]) -> NonEmptyList Char -> Property
-frequenciesProp freq input = todo
+frequenciesProp freq ip = conjoin [sumIsLength input output, inputInOutput input output, outputInInput input output]
+  where
+    input = getNonEmpty ip
+    output = freq input
 
 frequencies :: Eq a => [a] -> [(a,Int)]
 frequencies [] = []
@@ -175,7 +186,11 @@ frequencies (x:ys) = (x, length xs) : frequencies others
 --  [2,4,10]
 
 genList :: Gen [Int]
-genList = todo
+genList = do
+  let c = elements [0 .. 10]
+  n <- chooseInt (3,5)
+  l <- vectorOf n c
+  return $ sort l
 
 ------------------------------------------------------------------------------
 -- Ex 7: Here are the datatypes Arg and Expression from Set 15. Write
@@ -213,7 +228,11 @@ data Expression = Plus Arg Arg | Minus Arg Arg
   deriving (Show, Eq)
 
 instance Arbitrary Arg where
-  arbitrary = todo
+  arbitrary = elements [Number 0, Number 1, Number 2, Number 3, Number 4, Number 5, Number 6, Number 7, Number 8, Number 9, Number 10, Variable 'a', Variable 'b', Variable 'c', Variable 'x', Variable 'y', Variable 'z']
 
 instance Arbitrary Expression where
-  arbitrary = todo
+  arbitrary = do
+    a <- arbitrary :: Gen Arg
+    b <- arbitrary :: Gen Arg
+    c <- elements [Plus, Minus]
+    return (c a b)
