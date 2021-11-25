@@ -33,5 +33,9 @@ Total: 118/127
 - Set 14a 8/8 -- felt nice doing some easy exercises for a change
 - Set 14b 8/8 -- very pog exercises
 - Set 15 13/15
-- Set 16a 2/7 -- HERE
-- Set 16b 0/5
+- Set 16a 7/7
+- Set 16b 5/5 -- very fun
+
+Total: 112/121
+
+Very fun course, very sad that it ended
